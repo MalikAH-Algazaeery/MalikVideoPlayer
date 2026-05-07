@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity(), Player.Listener {
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
         player.addListener(this)
-        val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp4))
+        val mediaItem = MediaItem.fromUri(getString(R.string.stream))
         player.addMediaItem(mediaItem)
         player.prepare()
 
