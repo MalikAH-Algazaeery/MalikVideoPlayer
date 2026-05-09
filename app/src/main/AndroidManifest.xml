@@ -13,11 +13,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MalikVideoPlayer"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:hardwareAccelerated="true">
+        <activity
+            android:name=".AljazeeraActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MalikVideoPlayer"/>
+
         <activity
             android:name=".PlayerActivity"
             android:exported="false" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
