@@ -1,94 +1,29 @@
 package com.example.malikvideoplayer
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.view.View
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.Button
+import android.widget.EditText
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-import com.example.malikvideoplayer.ui.theme.MalikVideoPlayerTheme
+import com.example.malikvideoplayer.R
 
-lateinit var player: ExoPlayer
-lateinit var playerView: PlayerView
-lateinit var progressBar: ProgressBar
-lateinit var titleTv: TextView
 class MainActivity : ComponentActivity(), Player.Listener {
+    lateinit var editText: EditText
+    lateinit var button: Button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        progressBar = findViewById(R.id.progressBar)
-        titleTv = findViewById(R.id.title)
-        playerView = findViewById(R.id.video_view)
-        player = ExoPlayer.Builder(this).build()
-        playerView.player = player
-        player.addListener(this)
-        val mediaItem = MediaItem.fromUri(getString(R.string.stream))
-        player.addMediaItem(mediaItem)
-        player.prepare()
+        editText = findViewById(R.id.editTextSource)
+        button = findViewById(R.id.btn_start)
+        button.setOnClickListener {
+            val link = editText.text.toString()
+            val intent = Intent(this@MainActivity, PlayerActivity::class.java)
+            intent.putExtra("link", link)
+            startActivity(intent)
 
-        if (savedInstanceState != null){
-            savedInstanceState.getInt("mediaItem").let { restoredMedia ->
-                val seekTime = savedInstanceState.getLong("seekTime")
-                player.seekTo(restoredMedia, seekTime)
-                player.play()
-            }
         }
 
 
-    }
-
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        super.onPlaybackStateChanged(playbackState)
-        when(playbackState){
-            Player.STATE_BUFFERING -> {
-                progressBar.visibility = View.VISIBLE
-            }
-            Player.STATE_READY -> {
-                progressBar.visibility = View.INVISIBLE
-            }
-        }
-
-    }
-
-    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-        super.onMediaMetadataChanged(mediaMetadata)
-        titleTv.text = mediaMetadata.title ?: mediaMetadata.displayTitle ?: "no title"
-        titleTv.visibility = View.VISIBLE
-        titleTv.alpha = 1f
-        titleTv.postDelayed({
-            titleTv.animate()
-                .alpha(0f)
-                .setDuration(500)
-                .withEndAction {
-                    titleTv.visibility = View.GONE
-                }
-                .start()
-        }, 4000)
-
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putLong("seekTime", player.currentPosition)
-        outState.putInt("mediaItem", player.currentMediaItemIndex)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        player.release()
     }
 }
