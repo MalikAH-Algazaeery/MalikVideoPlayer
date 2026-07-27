@@ -1,94 +1,51 @@
 package com.example.malikvideoplayer
 
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.view.View
-import android.widget.ProgressBar
-import android.widget.TextView
+import androidx.annotation.OptIn
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import com.example.malikvideoplayer.ui.theme.MalikVideoPlayerTheme
+import uniffi.my_multicast_test.MulticastReceiver
 
-lateinit var player: ExoPlayer
-lateinit var playerView: PlayerView
-lateinit var progressBar: ProgressBar
-lateinit var titleTv: TextView
-class PlayerActivity : ComponentActivity(), Player.Listener {
+@OptIn(UnstableApi::class)
+class PlayerActivity : ComponentActivity() {
+    private var player: ExoPlayer? = null
+    private lateinit var playerView: PlayerView
+    private var rustReceiver: MulticastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
-        progressBar = findViewById(R.id.progressBar)
-        titleTv = findViewById(R.id.title)
         playerView = findViewById(R.id.video_view)
+
+        val phoneIp = intent.getStringExtra("phoneIp") ?: ""
+
+        // 1. Initialize the Rust Object (Stay Joined)
+        rustReceiver = MulticastReceiver("239.1.2.3", 5000.toUShort(), phoneIp)
+
+        // 2. Setup ExoPlayer with our Rust Source
+        val dataSourceFactory = DataSource.Factory {
+            RustMulticastDataSource(rustReceiver!!)
+        }
+
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
-        player.addListener(this)
-        val mediaItem = MediaItem.fromUri(intent.getStringExtra("link").toString())
-        player.addMediaItem(mediaItem)
-        player.prepare()
 
-        if (savedInstanceState != null){
-            savedInstanceState.getInt("mediaItem").let { restoredMedia ->
-                val seekTime = savedInstanceState.getLong("seekTime")
-                player.seekTo(restoredMedia, seekTime)
-                player.play()
-            }
-        }
+        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(MediaItem.fromUri("udp://239.1.2.3:5000"))
 
-
+        player?.setMediaSource(mediaSource)
+        player?.prepare()
+        player?.playWhenReady = true
     }
 
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        super.onPlaybackStateChanged(playbackState)
-        when(playbackState){
-            Player.STATE_BUFFERING -> {
-                progressBar.visibility = View.VISIBLE
-            }
-            Player.STATE_READY -> {
-                progressBar.visibility = View.INVISIBLE
-            }
-        }
-
-    }
-
-    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-        super.onMediaMetadataChanged(mediaMetadata)
-        titleTv.text = mediaMetadata.title ?: mediaMetadata.displayTitle ?: "no title"
-        titleTv.visibility = View.VISIBLE
-        titleTv.alpha = 1f
-        titleTv.postDelayed({
-            titleTv.animate()
-                .alpha(0f)
-                .setDuration(500)
-                .withEndAction {
-                    titleTv.visibility = View.GONE
-                }
-                .start()
-        }, 4000)
-
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putLong("seekTime", player.currentPosition)
-        outState.putInt("mediaItem", player.currentMediaItemIndex)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        player.release()
+    override fun onDestroy() {
+        super.onDestroy()
+        player?.release()
+        // Rust object is cleaned up automatically here
     }
 }

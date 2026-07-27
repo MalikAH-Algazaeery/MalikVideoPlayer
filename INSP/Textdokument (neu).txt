@@ -1,0 +1,17 @@
+$PcWiFiIp = "192.168.178.52"
+$MulticastGroup = "239.1.2.3"
+$Port = 5000
+
+$IP = [System.Net.IPAddress]::Parse($MulticastGroup)
+$LocalIP = [System.Net.IPAddress]::Parse($PcWiFiIp)
+$Endpoint = New-Object System.Net.IPEndPoint($IP, $Port)
+
+# Force the sender to use the WiFi adapter
+$Client = New-Object System.Net.Sockets.UdpClient -ArgumentList (New-Object System.Net.IPEndPoint($LocalIP, 0))
+$Client.JoinMulticastGroup($IP)
+$Client.Ttl = 4 
+
+$Message = [System.Text.Encoding]::ASCII.GetBytes("Checking Fritzbox")
+$Client.Send($Message, $Message.Length, $Endpoint)
+$Client.Close()
+write-host "Packet sent specifically from $PcWiFiIp to $MulticastGroup"

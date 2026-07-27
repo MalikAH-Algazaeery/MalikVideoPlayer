@@ -8,20 +8,20 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import uniffi.my_multicast_test.runReceiver
+// Note: We no longer import runReceiver.
+// We now use the MulticastReceiver class directly.
+import uniffi.my_multicast_test.MulticastReceiver
 
 class MainActivity : ComponentActivity() {
     lateinit var editText: EditText
     lateinit var button: Button
     lateinit var btnAljazeera: Button
 
-    // Multicast Lock to prevent Android from filtering packets
     private var multicastLock: WifiManager.MulticastLock? = null
     private var isListening = false
 
     companion object {
         init {
-            // This loads the libmy_multicast_test.so file
             System.loadLibrary("my_multicast_test")
         }
     }
@@ -30,8 +30,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Acquire Multicast Lock
-        // This is necessary on FritzBox/Home networks to let the phone see IGMP traffic
         val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         multicastLock = wifi.createMulticastLock("multicast_lock")
         multicastLock?.setReferenceCounted(true)
@@ -42,23 +40,20 @@ class MainActivity : ComponentActivity() {
         btnAljazeera = findViewById(R.id.buttonAljazeera)
 
         button.setOnClickListener {
-            // 2. Start the Rust Listener in the background
-            startMulticastListener()
+            // 1. Set isListening to false to KILL the background test thread
+            isListening = false
 
-            // 3. Start Video Player (Existing logic)
-            val link = editText.text.toString()
+            // 2. Wait a tiny bit for the thread to actually close the port
+            Thread.sleep(200)
+
+            // 3. Now start the Player
+            val phoneIp = getWifiIpAddress()
             val intent = Intent(this@MainActivity, PlayerActivity::class.java)
-            intent.putExtra("link", link)
-            startActivity(intent)
-        }
-
-        btnAljazeera.setOnClickListener {
-            val intent = Intent(this@MainActivity, AljazeeraActivity::class.java)
+            intent.putExtra("phoneIp", phoneIp)
             startActivity(intent)
         }
     }
 
-    // Helper: Converts phone WiFi info into an IP string (e.g., "192.168.178.68")
     private fun getWifiIpAddress(): String {
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val ip = wifiManager.connectionInfo.ipAddress
@@ -77,21 +72,22 @@ class MainActivity : ComponentActivity() {
 
         Thread {
             val phoneIp = getWifiIpAddress()
-            println("RUST: Starting 5-second wait on IP: $phoneIp")
-
             try {
-                // Call the Rust bridge.
-                // Because of our new Rust code, this function will now "hang"
-                // for 5 seconds to give the FritzBox time to send the packet.
-                val bytes = runReceiver("239.1.2.3", 5000.toUShort(), phoneIp)
+                // --- THIS IS THE FIX ---
+                // 1. Create the Rust Object (Constructor)
+                val receiver = MulticastReceiver("239.1.2.3", 5000.toUShort(), phoneIp)
 
-                if (bytes > 0u) {
-                    println("RUST RESULT: Success! Received $bytes bytes")
+                println("RUST: Class created. Waiting for 1 packet...")
+
+                // 2. Call the method on the object
+                val packetData = receiver.readPacket()
+
+                if (packetData.isNotEmpty()) {
+                    val size = packetData.size
+                    println("RUST RESULT: Success! Received $size bytes")
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "SUCCESS: Received $bytes bytes!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "Test Success: $size bytes", Toast.LENGTH_SHORT).show()
                     }
-                } else {
-                    println("RUST RESULT: Timed out (0 bytes). Did you send the packet?")
                 }
             } catch (e: Exception) {
                 println("RUST ERROR: ${e.message}")
@@ -103,7 +99,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Release the lock when the app is closed to save battery
         multicastLock?.release()
     }
 }

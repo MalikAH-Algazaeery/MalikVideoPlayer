@@ -37,6 +37,7 @@ android {
     buildFeatures {
         compose = true
     }
+
 }
 
 dependencies {
@@ -64,5 +65,5 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.10.0")
     implementation("androidx.media3:media3-ui:1.10.0")
     implementation("androidx.media3:media3-ui-compose-material3:1.10.0")
-    implementation("net.java.dev.jna:jna:5.14.0@aar")
+    implementation("net.java.dev.jna:jna:5.17.0@aar")
 }
