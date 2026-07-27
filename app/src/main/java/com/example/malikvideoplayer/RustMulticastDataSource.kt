@@ -10,31 +10,31 @@ import android.net.Uri
 import uniffi.my_multicast_test.MulticastReceiver
 
 @OptIn(UnstableApi::class)
-class RustMulticastDataSource(
-    private val receiver: MulticastReceiver
-) : BaseDataSource(true) {
-
-    override fun open(dataSpec: DataSpec): Long {
-        return C.LENGTH_UNSET.toLong() // We don't know the video length (it's a live stream)
-    }
-
-    override fun close() {
-        // Connection is closed when the player stops
-    }
-
-    override fun getUri(): Uri? = null
+class RustMulticastDataSource(private val receiver: MulticastReceiver) : BaseDataSource(true) {
+    private var internalBuffer: ByteArray? = null
+    private var bufferPosition = 0
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        // Ask Rust for the next packet of video data
-        val rawData = receiver.readPacket()
+        // If our tank is empty, refill it from Rust
+        if (internalBuffer == null || bufferPosition >= internalBuffer!!.size) {
+            val newData = receiver.readPacketsBatch()
+            if (newData.isEmpty()) return 0
 
-        if (rawData.isEmpty()) return 0
+            internalBuffer = newData
+            bufferPosition = 0
+        }
 
-        // Copy the bytes into ExoPlayer's buffer
-        println("DEBUG: Rust fed ${rawData.size} bytes into ExoPlayer")
-        val bytesToCopy = minOf(rawData.size, length)
-        rawData.copyInto(buffer, offset, 0, bytesToCopy)
+        // How much can we give ExoPlayer right now?
+        val available = internalBuffer!!.size - bufferPosition
+        val toCopy = minOf(available, length)
 
-        return bytesToCopy
+        System.arraycopy(internalBuffer!!, bufferPosition, buffer, offset, toCopy)
+        bufferPosition += toCopy
+
+        return toCopy
     }
+
+    override fun open(dataSpec: DataSpec): Long = C.LENGTH_UNSET.toLong()
+    override fun close() { internalBuffer = null }
+    override fun getUri(): Uri? = null
 }

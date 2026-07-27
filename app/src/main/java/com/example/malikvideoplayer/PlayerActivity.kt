@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
@@ -33,6 +34,19 @@ class PlayerActivity : ComponentActivity() {
         }
 
         player = ExoPlayer.Builder(this).build()
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                10000,  // Min buffer before starting playback (5 seconds)
+                20000, // Max buffer
+                2500,  // Min buffer to resume after a stutter
+                5000   // Min buffer for initial start
+            )
+            .build()
+
+        player = ExoPlayer.Builder(this)
+            .setLoadControl(loadControl) // Apply the custom buffer
+            .build()
+
         playerView.player = player
 
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)

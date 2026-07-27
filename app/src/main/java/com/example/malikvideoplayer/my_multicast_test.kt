@@ -743,7 +743,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_my_multicast_test_fn_constructor_multicastreceiver_new(`group`: RustBuffer.ByValue,`port`: Short,`myIp`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_my_multicast_test_fn_method_multicastreceiver_read_packet(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_my_multicast_test_fn_method_multicastreceiver_read_packets_batch(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_my_multicast_test_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -857,7 +857,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_my_multicast_test_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_my_multicast_test_checksum_method_multicastreceiver_read_packet(
+    fun uniffi_my_multicast_test_checksum_method_multicastreceiver_read_packets_batch(
     ): Short
     fun uniffi_my_multicast_test_checksum_constructor_multicastreceiver_new(
     ): Short
@@ -878,7 +878,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_my_multicast_test_checksum_method_multicastreceiver_read_packet() != 25434.toShort()) {
+    if (lib.uniffi_my_multicast_test_checksum_method_multicastreceiver_read_packets_batch() != 57591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_my_multicast_test_checksum_constructor_multicastreceiver_new() != 44387.toShort()) {
@@ -1194,7 +1194,7 @@ private class JavaLangRefCleanable(
 }
 public interface MulticastReceiverInterface {
     
-    fun `readPacket`(): kotlin.ByteArray
+    fun `readPacketsBatch`(): kotlin.ByteArray
     
     companion object
 }
@@ -1287,11 +1287,11 @@ open class MulticastReceiver: Disposable, AutoCloseable, MulticastReceiverInterf
         }
     }
 
-    override fun `readPacket`(): kotlin.ByteArray {
+    override fun `readPacketsBatch`(): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_my_multicast_test_fn_method_multicastreceiver_read_packet(
+    UniffiLib.INSTANCE.uniffi_my_multicast_test_fn_method_multicastreceiver_read_packets_batch(
         it, _status)
 }
     }

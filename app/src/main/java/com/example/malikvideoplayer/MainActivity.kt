@@ -40,13 +40,6 @@ class MainActivity : ComponentActivity() {
         btnAljazeera = findViewById(R.id.buttonAljazeera)
 
         button.setOnClickListener {
-            // 1. Set isListening to false to KILL the background test thread
-            isListening = false
-
-            // 2. Wait a tiny bit for the thread to actually close the port
-            Thread.sleep(200)
-
-            // 3. Now start the Player
             val phoneIp = getWifiIpAddress()
             val intent = Intent(this@MainActivity, PlayerActivity::class.java)
             intent.putExtra("phoneIp", phoneIp)
@@ -80,7 +73,7 @@ class MainActivity : ComponentActivity() {
                 println("RUST: Class created. Waiting for 1 packet...")
 
                 // 2. Call the method on the object
-                val packetData = receiver.readPacket()
+                val packetData = receiver.readPacketsBatch()
 
                 if (packetData.isNotEmpty()) {
                     val size = packetData.size
