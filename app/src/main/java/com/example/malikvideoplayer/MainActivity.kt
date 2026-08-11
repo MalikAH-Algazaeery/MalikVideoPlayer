@@ -6,92 +6,54 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-// Note: We no longer import runReceiver.
-// We now use the MulticastReceiver class directly.
-import uniffi.my_multicast_test.MulticastReceiver
 
 class MainActivity : ComponentActivity() {
-    lateinit var editText: EditText
-    lateinit var button: Button
-    lateinit var btnAljazeera: Button
-
-    private var multicastLock: WifiManager.MulticastLock? = null
-    private var isListening = false
+    private lateinit var ipInput: EditText
+    private lateinit var portInput: EditText
 
     companion object {
-        init {
-            System.loadLibrary("my_multicast_test")
-        }
+        init { System.loadLibrary("my_multicast_test") }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        ipInput = findViewById(R.id.editTextSource)
+        portInput = findViewById(R.id.editTextPort)
+        val btnStart = findViewById<Button>(R.id.btn_start)
+        val btnDefault = findViewById<Button>(R.id.btn_default)
+
+        // Multicast Lock
         val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        multicastLock = wifi.createMulticastLock("multicast_lock")
-        multicastLock?.setReferenceCounted(true)
-        multicastLock?.acquire()
+        val lock = wifi.createMulticastLock("multicast_lock")
+        lock.setReferenceCounted(true)
+        lock.acquire()
 
-        editText = findViewById(R.id.editTextSource)
-        button = findViewById(R.id.btn_start)
-        btnAljazeera = findViewById(R.id.buttonAljazeera)
+        btnStart.setOnClickListener {
+            val ip = ipInput.text.toString()
+            val port = portInput.text.toString().toIntOrNull() ?: 5000
+            launch(ip, port)
+        }
 
-        button.setOnClickListener {
-            val phoneIp = getWifiIpAddress()
-            val intent = Intent(this@MainActivity, PlayerActivity::class.java)
-            intent.putExtra("phoneIp", phoneIp)
-            startActivity(intent)
+        btnDefault.setOnClickListener {
+            launch("239.1.2.3", 5000)
         }
     }
 
+    private fun launch(ip: String, port: Int) {
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra("multicastIp", ip)
+            putExtra("multicastPort", port)
+            putExtra("phoneIp", getWifiIpAddress())
+        }
+        startActivity(intent)
+    }
+
     private fun getWifiIpAddress(): String {
-        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val ip = wifiManager.connectionInfo.ipAddress
-        return String.format(
-            "%d.%d.%d.%d",
-            (ip and 0xff),
-            (ip shr 8 and 0xff),
-            (ip shr 16 and 0xff),
-            (ip shr 24 and 0xff)
-        )
-    }
-
-    private fun startMulticastListener() {
-        if (isListening) return
-        isListening = true
-
-        Thread {
-            val phoneIp = getWifiIpAddress()
-            try {
-                // --- THIS IS THE FIX ---
-                // 1. Create the Rust Object (Constructor)
-                val receiver = MulticastReceiver("239.1.2.3", 5000.toUShort(), phoneIp)
-
-                println("RUST: Class created. Waiting for 1 packet...")
-
-                // 2. Call the method on the object
-                val packetData = receiver.readPacketsBatch()
-
-                if (packetData.isNotEmpty()) {
-                    val size = packetData.size
-                    println("RUST RESULT: Success! Received $size bytes")
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Test Success: $size bytes", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: Exception) {
-                println("RUST ERROR: ${e.message}")
-            } finally {
-                isListening = false
-            }
-        }.start()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        multicastLock?.release()
+        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val ip = wm.connectionInfo.ipAddress
+        return String.format("%d.%d.%d.%d", (ip and 0xff), (ip shr 8 and 0xff), (ip shr 16 and 0xff), (ip shr 24 and 0xff))
     }
 }

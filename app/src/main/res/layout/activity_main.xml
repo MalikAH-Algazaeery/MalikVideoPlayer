@@ -1,57 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#CC9560C3"
-    android:orientation="vertical">
+    android:padding="16dp">
 
+    <!-- Multicast IP Input -->
     <EditText
         android:id="@+id/editTextSource"
-        android:layout_width="288dp"
-        android:layout_height="82dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
-        android:hint="enter URL here."
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:hint="Multicast IP (e.g. 239.1.2.3)"
         android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/btn_start"
+        android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.491"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Multicast Port Input -->
+    <EditText
+        android:id="@+id/editTextPort"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Port (e.g. 5000)"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editTextSource" />
+
+    <!-- Button to Start with Custom Settings -->
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="#673AB7"
+        android:text="Start Custom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editTextPort" />
+
+    <!-- Button to Start with Default Settings (239.1.2.3:5000) -->
+    <Button
+        android:id="@+id/btn_default"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#4CAF50"
+        android:text="Use Default (239.1.2.3:5000)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_start" />
+
+    <!-- Legacy Button -->
     <Button
         android:id="@+id/buttonAljazeera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="16dp"
         android:text="Aljazeera"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_start"
-        tools:ignore="MissingConstraints" />
-
-    <Button
-        android:id="@+id/btn_start"
-        style="@android:style/Widget.Material.Button.Inset"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="73dp"
-        android:backgroundTint="#673AB7"
-        android:text="Start Streaming"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextSource"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toBottomOf="@id/btn_default" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
