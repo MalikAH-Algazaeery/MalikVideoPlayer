@@ -1,0 +1,9 @@
+/.idea
+/target
+**/*.rs.bk
+.DS_Store
+Cargo.lock
+__pycache__/
+*.py[cod]
+mctx-core-py/python/mctx_core/_mctx_core*.so
+mctx-core-py/python/mctx_core/_mctx_core*.pyd

@@ -1,0 +1,41 @@
+[package]
+name = "mctx-core"
+version = "0.2.5"
+edition = "2024"
+license = "BSD-2-Clause"
+description = "Runtime-agnostic and portable IPv4 and IPv6 multicast sender library."
+readme = "README.md"
+repository = "https://github.com/QUICast/mctx-core"
+homepage = "https://github.com/QUICast/mctx-core"
+documentation = "https://docs.rs/mctx-core"
+keywords = ["multicast", "udp", "networking", "sender", "ssm"]
+categories = ["network-programming"]
+
+[workspace]
+members = ["mctx-core-py"]
+
+[features]
+default = []
+metrics = ["dep:serde_json"]
+raw-packets = []
+tokio = ["dep:tokio"]
+
+[dependencies]
+socket2 = { version = "0.6.3", features = ["all"] }
+thiserror = "2.0.18"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "time"], optional = true }
+libc = "0.2"
+serde_json = { version = "1", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis", "Win32_Networking_WinSock"] }
+
+[[bin]]
+name = "mctx_tokio_send"
+path = "src/bin/mctx_tokio_send.rs"
+required-features = ["tokio"]
+
+[[bin]]
+name = "mctx_raw_send"
+path = "src/bin/mctx_raw_send.rs"
+required-features = ["raw-packets"]

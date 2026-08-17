@@ -1,0 +1,99 @@
+# mctx-core
+
+`mctx-core` is a runtime-agnostic multicast sender library for IPv4 and IPv6
+ASM/SSM-style traffic.
+
+The default API focuses on lightweight UDP multicast send with explicit socket
+ownership, deterministic source/interface control, and non-blocking operation.
+Optional features add Tokio integration, metrics, raw IP datagram transmit, and
+Python bindings without changing the default UDP send path.
+
+## Highlights
+
+- IPv4 and IPv6 multicast send support
+- Explicit separation between sender source address and outgoing interface
+- Exact IPv4 or IPv6 local bind control for announce-style senders
+- Predictable IPv6 destination scope handling for `ff31` / `ff32` vs `ff35` /
+  `ff38` / `ff3e`
+- Non-blocking send API with caller-owned context and socket extraction
+- Caller-provided socket support
+- Optional `tokio`, `metrics`, and `raw-packets` features
+- Optional Python bindings in the sibling `mctx-core-py` crate
+
+## Install
+
+```bash
+cargo add mctx-core
+```
+
+Optional feature examples:
+
+```bash
+cargo add mctx-core --features tokio
+cargo add mctx-core --features metrics
+cargo add mctx-core --features raw-packets
+```
+
+Python bindings are available in
+[`mctx-core-py`](mctx-core-py/README.md).
+
+## Quick Start
+
+```rust
+use mctx_core::{Context, PublicationConfig};
+use std::net::Ipv4Addr;
+
+let mut ctx = Context::new();
+let id = ctx.add_publication(
+    PublicationConfig::new(Ipv4Addr::new(239, 1, 2, 3), 5000)
+        .with_source_addr(Ipv4Addr::new(192, 168, 1, 10))
+        .with_ttl(8),
+)?;
+
+let report = ctx.send(id, b"hello multicast")?;
+println!("sent {} bytes to {}", report.bytes_sent, report.destination);
+println!("wire source {:?}", report.source_addr);
+```
+
+For IPv6 examples, source/interface rules, and CLI commands, see
+[IPv6 Multicast](docs/ipv6.md) and [Demo Binaries](docs/demo.md).
+
+## Feature Map
+
+- `tokio`: async send wrapper for extracted publications.
+- `metrics`: snapshots, deltas, samplers, and Heimdall-style JSONL helpers.
+- `raw-packets`: complete multicast IP datagram transmit for AMT-style use
+  cases.
+- `mctx-core-py`: sibling workspace crate with Python and asyncio bindings.
+
+## Documentation
+
+- [Usage Guide](docs/usage.md): core Rust sender API flow.
+- [IPv6 Multicast](docs/ipv6.md): source vs interface, scopes, and SSM group rules.
+- [Raw Packet Transmit](docs/raw-packets.md): `raw-packets` API and platform limits.
+- [Demo Binaries](docs/demo.md): sender CLI commands and metrics examples.
+- [Metrics](docs/metrics.md): snapshot, delta, and JSONL semantics.
+- [Python Bindings](docs/python.md): Python API and asyncio helper.
+- [Architecture](docs/architecture.md): main types and module layout.
+- [Design Decisions](docs/design-decisions.md): why the API is shaped this way.
+
+## Platform Support
+
+| OS      | IPv4 send | IPv6 ASM send | IPv6 SSM-style send | Notes |
+|---------|-----------|---------------|---------------------|-------|
+| macOS   | ✅         | ✅             | ✅                   | `ff32::/16` should use a `fe80::` source |
+| Linux   | ✅         | ✅             | ✅                   | intended support |
+| Windows | ✅         | ✅             | ✅                   | keep scope ID only for `ff31` / `ff32` |
+
+The default UDP send path supports IPv4 and IPv6 multicast on the same
+platforms.
+
+Raw multicast IP datagram transmit is available behind the `raw-packets`
+feature. Linux and macOS support raw IPv4 and IPv6 transmit. Windows currently
+supports raw IPv4 transmit only. On Linux and macOS IPv6, the source/group
+tuple and transport header are preserved, while the kernel rebuilds the base
+IPv6 header during raw transmit.
+
+## License
+
+BSD 2-Clause
