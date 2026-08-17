@@ -6,46 +6,47 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSpec
-import java.io.File
-import java.io.RandomAccessFile
+import uniffi.my_multicast_test.MulticastReceiver
+import java.io.FileOutputStream
+import kotlin.concurrent.thread
 
 @OptIn(UnstableApi::class)
-class RustMulticastDataSource(
-    private val manager: MulticastStreamManager,
-    private val cacheFile: File
-) : BaseDataSource(true) {
+class RustMulticastDataSource(private val receiver: MulticastReceiver) : BaseDataSource(true) {
 
-    private val fileReader = RandomAccessFile(cacheFile, "r")
-    private var readPosition: Long = 0
+    private var internalBuffer: ByteArray? = null
+    private var bufferPosition = 0
 
-    override fun open(dataSpec: DataSpec): Long {
-        readPosition = dataSpec.position
-        return C.LENGTH_UNSET.toLong() // Unknown length because it's a live stream
-    }
+    // File stream for recording. Volatile ensures the background thread sees it immediately.
+    @Volatile var recordStream: FileOutputStream? = null
+
+    override fun open(dataSpec: DataSpec): Long = C.LENGTH_UNSET.toLong()
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        // Find out how much data is actually available in the file right now
-        val available = manager.writePosition.get() - readPosition
+        // If our current memory chunk is exhausted, pull a new batch from Rust
+        if (internalBuffer == null || bufferPosition >= internalBuffer!!.size) {
+            val newData = receiver.readPacketsBatch()
+            if (newData.isEmpty()) return 0 // Wait for more network data
 
-        if (available <= 0) {
-            return 0 // Tell ExoPlayer to wait for more data
+            // RECORDING: If user clicked REC, write the bytes to disk in a separate thread.
+            // This "Fire and Forget" approach ensures disk speed doesn't affect video quality.
+            val stream = recordStream
+            if (stream != null) {
+                thread { try { stream.write(newData) } catch (e: Exception) {} }
+            }
+
+            internalBuffer = newData
+            bufferPosition = 0
         }
 
-        // Read the data from the disk
-        val bytesToRead = minOf(available.toInt(), length)
-        fileReader.seek(readPosition)
-        val bytesRead = fileReader.read(buffer, offset, bytesToRead)
+        // Copy bytes from memory to ExoPlayer
+        val remaining = internalBuffer!!.size - bufferPosition
+        val toCopy = minOf(remaining, length)
+        System.arraycopy(internalBuffer!!, bufferPosition, buffer, offset, toCopy)
+        bufferPosition += toCopy
 
-        if (bytesRead > 0) {
-            readPosition += bytesRead
-            return bytesRead
-        }
-        return 0
+        return toCopy
     }
 
-    override fun getUri(): Uri = Uri.fromFile(cacheFile)
-
-    override fun close() {
-        fileReader.close()
-    }
+    override fun getUri(): Uri? = Uri.parse("udp://live")
+    override fun close() { internalBuffer = null }
 }

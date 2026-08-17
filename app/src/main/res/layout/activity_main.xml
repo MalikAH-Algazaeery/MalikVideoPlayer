@@ -5,67 +5,49 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#CC9560C3"
-    android:padding="16dp">
+    android:padding="20dp">
 
-    <!-- Multicast IP Input -->
+    <!-- Pre-filled Multicast IP -->
     <EditText
         android:id="@+id/editTextSource"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="80dp"
-        android:hint="Multicast IP (e.g. 239.1.2.3)"
-        android:inputType="text"
+        android:hint="Group IP"
+        android:text="239.1.2.3"
         android:textColor="#FFFFFF"
+        android:backgroundTint="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Multicast Port Input -->
+    <!-- Pre-filled Multicast Port -->
     <EditText
         android:id="@+id/editTextPort"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Port (e.g. 5000)"
+        android:hint="Port"
+        android:text="5000"
         android:inputType="number"
         android:textColor="#FFFFFF"
+        android:backgroundTint="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTextSource" />
 
-    <!-- Button to Start with Custom Settings -->
+    <!-- Single Action Button -->
     <Button
         android:id="@+id/btn_start"
         android:layout_width="200dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_marginTop="40dp"
         android:backgroundTint="#673AB7"
-        android:text="Start Custom"
+        android:text="Start Streaming"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTextPort" />
-
-    <!-- Button to Start with Default Settings (239.1.2.3:5000) -->
-    <Button
-        android:id="@+id/btn_default"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#4CAF50"
-        android:text="Use Default (239.1.2.3:5000)"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_start" />
-
-    <!-- Legacy Button -->
-    <Button
-        android:id="@+id/buttonAljazeera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Aljazeera"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_default" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
