@@ -2,8 +2,8 @@ use mcrx_core::{Context, SubscriptionConfig, SubscriptionId};
 use std::net::Ipv4Addr;
 use std::sync::Mutex; // Needed for thread safety
 
-// 1. We must "derive" Object so UniFFI knows this is a class for Kotlin
-// 2. We wrap the internal state in a Mutex so it's safe to move to Android
+// We must "derive" Object so UniFFI knows this is a class for Kotlin
+// We wrap the internal state in a Mutex so it's safe to move to Android
 #[derive(uniffi::Object)]
 pub struct MulticastReceiver {
     inner: Mutex<ReceiverInner>,
