@@ -9,15 +9,21 @@ A hybrid Android application demonstrating low-latency IP multicast video recept
 > [!IMPORTANT]
 > **Physical Device Required for Live Video:**  
 > Native binaries for **ARM64** (`arm64-v8a`), **ARMEABI** ('armeabi-v7a') and **x86_64 emulators** (`x86_64`) are pre-compiled and committed to this repository. The app will install and open cleanly on an Android Studio emulator without crashing.  
-> **However, live multicast video will NOT play inside an emulator.** Android Studio emulators operate behind an isolated virtual NAT network (`10.0.2.15`) that filters out local Layer-2 WiFi multicast (IGMP) packets from the host machine.  
+> **However, live multicast video will NOT play inside an emulator.** Android Studio emulators operate behind an isolated virtual NAT network that filters out local Layer-2 WiFi multicast (IGMP) packets from the host machine.  
 > **To evaluate live video playback, you must run the app on a physical Android device connected to the same local WiFi network as the streaming PC.**
-> 
-> **You can find a ready to install .apk file in release section in the side bar on the right side**
+
 ---
 
 > **Note for Evaluators:**  
 > All native shared libraries (`.so` files) and UniFFI Kotlin bindings are **already pre-compiled and placed in the project**.  
 > **You do NOT need to install Rust, Cargo, or the Android NDK to test the application.**
+> 
+
+## Option A: Download Pre-built APK (Fastest)
+You can download the ready-to-install `app-debug.apk` directly from the [GitHub Releases](https://github.com/MalikAH-Algazaeery/MalikVideoPlayer/releases) tab without opening Android Studio.  
+Transfer it to your phone and install it (enable "Install unknown apps" when prompted).
+
+## Option B: Run via Android Studio
 
 ### 1. Run the App via Android Studio
 1. Connect a physical Android phone to your computer via USB or WLAN (enable USB or WLAN Debugging).
