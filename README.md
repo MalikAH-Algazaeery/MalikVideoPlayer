@@ -11,7 +11,7 @@ A hybrid Android application demonstrating low-latency IP multicast video recept
 > Native binaries for **ARM64** (`arm64-v8a`), **ARMEABI** ('armeabi-v7a') and **x86_64 emulators** (`x86_64`) are pre-compiled and committed to this repository. The app will install and open cleanly on an Android Studio emulator without crashing.  
 > **However, live multicast video will NOT play inside an emulator.** Android Studio emulators operate behind an isolated virtual NAT network (`10.0.2.15`) that filters out local Layer-2 WiFi multicast (IGMP) packets from the host machine.  
 > **To evaluate live video playback, you must run the app on a physical Android device connected to the same local WiFi network as the streaming PC.**
-
+> **You can find a ready to install .apk file in release section in the side bar on the right side**
 ---
 
 > **Note for Evaluators:**  
