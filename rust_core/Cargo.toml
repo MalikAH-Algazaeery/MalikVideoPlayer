@@ -1,0 +1,16 @@
+[package]
+name = "my_multicast_test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mcrx-core = { path = "./mcrx-core-main" }
+mctx-core = { path = "./mctx-core-main" }
+uniffi = { version = "0.28", features = ["cli"] }
+
+[lib]
+crate-type = ["cdylib", "staticlib"] # This tells Rust to build an Android library
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
